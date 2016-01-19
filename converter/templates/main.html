@@ -1,0 +1,109 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Django Converter</title>
+    <link rel="stylesheet" type="text/css" href="{% static "bootstrap/css/bootstrap.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "bootstrap/css/bootstrap-responsive.css" %}">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <a style="text-decoration: none" href="/"><h2 class="page-header text-info">Currency Converter</h2></a>
+        </div>
+    </div>
+
+    <!-- place for "Last currencies update"-->
+    <div class="container">
+        <div class="row">
+            <div class="span12 text-right">
+                <h4 class="text-success"><em>Last currencies update</em><i class="icon-globe"></i>: {{ update_time }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="container offset1">
+        <div class="row">
+            <h4 class="text-info">Exchange:</h4>
+
+            <form class="form-inline" name="convert data" action="" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <select name="base" class="span3">
+                        {% for currency in currencies %}
+                            {% if base == currency.symbols %}
+                                <option selected value={{ currency.symbols }}>{{ currency.symbols }} ({{ currency.name }})</option>
+                            {% else %}
+                                <option value={{ currency.symbols }}>{{ currency.symbols }} ({{ currency.name }})</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+
+                    {% if base_value %}
+                        <input class="input-medium" name="base_value" type="text" value={{ base_value }}>
+                    {% else %}
+                        <input class="input-medium" name="base_value" type="text" value="">
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <h4 class="text-info">to</h4>
+                </div>
+
+                <div class="form-group">
+                    <select name="rate" class="span3">
+                        {% for currency in currencies %}
+                            {% if rate == currency.symbols %}
+                                <option selected value={{ currency.symbols }}>{{ currency.symbols }} ({{ currency.name }})</option>
+                            {% else %}
+                                <option value={{ currency.symbols }}>{{ currency.symbols }} ({{ currency.name }})</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+
+                    {% if result_value %}
+                        <input class="input-medium" name="rate_value" type="text" readonly value={{ result_value }}>
+                    {% else %}
+                        <input class="input-medium" name="rate_value" type="text" readonly value="" >
+                    {% endif %}
+                </div>
+
+                <br>
+
+                <div class="row">
+                    <div class="alert alert-info span5" role="alert">
+                        <h4>Select a currencies, enter the amount and then click button "Convert"</h4>
+                    </div>
+                    <div class="span4">
+                        <button type="submit" class="btn  btn-primary btn-large">Convert</button>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    {% if errors %}
+                        <div class="alert alert-danger span5" role="alert">
+                            <ul>
+                                {% for error in errors %}
+                                    <li><h4>{{ error }}</h4></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    {% if result_value %}
+                        <div class="alert alert-success span4" role="alert">
+                            <h4>{{ base_value }} {{ base_name }} equals</h4>
+                            <h3>{{ result_value }} {{ rate_name }}</h3>
+                        </div>
+                    {% endif %}
+                </div>
+            </form>
+
+        </div>
+    </div>
+</body>
+
+</html>

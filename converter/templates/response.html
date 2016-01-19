@@ -1,0 +1,47 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="{% static "bootstrap/css/bootstrap.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "bootstrap/css/bootstrap-responsive.css" %}">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <a style="text-decoration: none" href="/"><h2 class="page-header text-info">Currency Converter</h2></a>
+        </div>
+    </div>
+
+    <div class="container ">
+        <div class="row">
+            {% if fail_format %}
+                <div class="alert alert-danger span5" role="alert">
+                    <ul>
+                        <li><h4>{{ fail_format }}</h4></li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="row">
+            {% if errors %}
+                <div class="alert alert-danger span5" role="alert">
+                    <ul>
+                        {% for error in errors %}
+                            <li><h4>{{ error }}</h4></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            {% if result_value %}
+                <div class="alert alert-success span4" role="alert">
+                    <h4> {{ result_value }}</h4>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
