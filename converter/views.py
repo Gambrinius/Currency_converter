@@ -80,76 +80,77 @@ def request_convert(request, amount, currency_code_1, currency_code_2, response_
     errors = []
     converted_amount = float()
 
-    # check for errors
-    try:
-        amount = float(amount)
-    except Exception:
-        errors.append('Entered incorrect amount.')
+    if request.method == 'GET':
+        # check for errors
+        try:
+            amount = float(amount)
+        except ValueError:
+            errors.append('Entered incorrect amount.')
 
-    if currency_code_1 == currency_code_2:
-        errors.append('Base rate and second rate are equal.'
-                      'Change some rate.')
+        if currency_code_1 == currency_code_2:
+            errors.append('Base rate and second rate are equal.'
+                          'Change some rate.')
 
-    try:
-        FullName.objects.get(symbols=currency_code_1)
-        FullName.objects.get(symbols=currency_code_2)
-    except ObjectDoesNotExist:
-        errors.append('Entered incorrect currency/currencies.'
-                      'Please, try again.')
-    context['errors'] = errors
+        try:
+            FullName.objects.get(symbols=currency_code_1)
+            FullName.objects.get(symbols=currency_code_2)
+        except ObjectDoesNotExist:
+            errors.append('Entered incorrect currency/currencies.'
+                          'Please, try again.')
+        context['errors'] = errors
 
-    if not errors:
+        if not errors:
 
-        full_key = make_key(currency_code_2, currency_code_1)  # full_key = key_prefix:key for value in cache
+            full_key = make_key(currency_code_2, currency_code_1)  # full_key = key_prefix:key for value in cache
 
-        if full_key in cache:
-            if currency_code_1 == "USD":
-                rate_value = cache.get(full_key)
-                converted_amount = round(amount * rate_value, 4)
+            if full_key in cache:
+                if currency_code_1 == "USD":
+                    rate_value = cache.get(full_key)
+                    converted_amount = round(amount * rate_value, 4)
+                else:
+                    cross_rate = cache.get(full_key)
+                    converted_amount = round(amount * cross_rate, 4)
             else:
-                cross_rate = cache.get(full_key)
-                converted_amount = round(amount * cross_rate, 4)
-        else:
-            # convert amount
-            rate_value = Currency.objects.get(base="USD", rate=currency_code_2).value
+                # convert amount
+                rate_value = Currency.objects.get(base="USD", rate=currency_code_2).value
 
-            if currency_code_1 == "USD":  # rate based on USD
-                converted_amount = round(amount * rate_value, 4)
-                cache.set(full_key, rate_value, 1800)
+                if currency_code_1 == "USD":  # rate based on USD
+                    converted_amount = round(amount * rate_value, 4)
+                    cache.set(full_key, rate_value, 1800)
 
-            else:   # cross rate
-                base_value = FullName.objects.get(base="USD", rate=currency_code_1).value
-                cross_rate = float(rate_value / base_value)
-                converted_amount = round(amount * cross_rate, 4)
-                cache.set(full_key, cross_rate, 1800)
+                else:   # cross rate
+                    base_value = FullName.objects.get(base="USD", rate=currency_code_1).value
+                    cross_rate = float(rate_value / base_value)
+                    converted_amount = round(amount * cross_rate, 4)
+                    cache.set(full_key, cross_rate, 1800)
 
-    if response_format == "text":  # response in text format
-        if errors:
-            content = errors
-        else:
-            amount = round(amount, 2)
-            content = "The amount %.2f %s converted into %.4f %s" % (amount, currency_code_1,
-                                                                     converted_amount, currency_code_2)
-        return HttpResponse(content=content, content_type='text/plain')
+        if response_format == "text":  # response in text format
+            if errors:
+                content = errors
+            else:
+                amount = round(amount, 2)
+                content = "The amount %.2f %s converted into %.4f %s" % (amount, currency_code_1,
+                                                                         converted_amount, currency_code_2)
+            return HttpResponse(content=content, content_type='text/plain')
 
-    elif response_format == "json":  # response in json format
-        json_dict = dict()
-        if errors:
-            json_dict['error'] = errors
-            json_dict['success'] = False
-        else:
-            json_dict['result'] = converted_amount
-            json_dict['success'] = True
-        return JsonResponse(json_dict)
+        elif response_format == "json":  # response in json format
+            json_dict = dict()
+            if errors:
+                json_dict['error'] = errors
+                json_dict['success'] = False
+            else:
+                json_dict['result'] = converted_amount
+                json_dict['success'] = True
+            return JsonResponse(json_dict)
 
-    elif response_format == "html":  # response in html format
-        if errors:
-            context['errors'] = errors
-        else:
-            context['result_value'] = "The amount %.2f %s converted into %.4f %s" % (amount, currency_code_1,
-                                                                                     converted_amount, currency_code_2)
-        return render(request, 'response.html', context)
+        elif response_format == "html":  # response in html format
+            if errors:
+                context['errors'] = errors
+            else:
+                context['result_value'] = "The amount %.2f %s converted into %.4f %s" % (amount, currency_code_1,
+                                                                                         converted_amount, currency_code_2)
+            return render(request, 'response.html', context)
 
-    else:  # report an error request format
-        context['fail_format'] = 'You entered unsupported or incorrect response format. Please, try again.'
-        return render(request, 'response.html', context)
+        else:  # report an error request format
+            context['fail_format'] = 'You entered unsupported or incorrect response format. Please, try again.'
+            return render(request, 'response.html', context)
