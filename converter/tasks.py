@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-from converter.models import Currency, FullName
+from converter.models import Currency, FullName, LastUpdateTable
 from celery.task import task
+import datetime
 import requests
-
 
 """
 @task(ignore_result=True, max_retries=1, default_retry_delay=10)
 def just_print():
     print("Print from celery task")
 """
+
+# To run celery use command:
+# python manage.py celery worker -B --concurrency=1
 
 
 @task(ignore_result=True, max_retries=1, default_retry_delay=10)
@@ -44,6 +47,9 @@ def initialize():    # initialize/update rates, currencies to database from http
             fullname = FullName(symbols=key, name=value)
             fullname.save()
 
+    last_currency_update = LastUpdateTable.objects.get(table_name=Currency._meta.db_table)
+    last_currency_update.datatime = datetime.datetime.now()  # change date and time of currency update
+    last_currency_update.save()
     # update_time = dict_rates['timestamp']
     # context[]
     print("Update currencies is successful")

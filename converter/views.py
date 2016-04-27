@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
-from converter.models import Currency, FullName
+from converter.models import Currency, FullName, LastUpdateTable
 from django.core.cache import cache
-from datetime import datetime
+# from datetime import datetime
 
 # Create your views here.
 # PosgreSQL "psql -U gambrinius currencydb" in virtualenv in project directory
@@ -13,12 +13,20 @@ def make_key(key, key_prefix):
     return ':'.join([str(key_prefix), str(key)])
 
 
+# def initialize(request):
+#     context = dict()
+#     if request.method == 'GET':
+#         context['update_time'] = LastUpdateTable.objects.get(table_name=Currency._meta.db_table).datatime
+#     return render(request, 'main.html', context)
+
+
 def convert(request):
     errors = []
     context = dict()
     context['currencies'] = FullName.objects.all().order_by('symbols')
+    context['update_time'] = LastUpdateTable.objects.get(table_name=Currency._meta.db_table).datatime
 
-    if request.POST:
+    if request.method == 'POST':
         context['base'] = request.POST.get('base')
         context['rate'] = request.POST.get('rate')
         context['base_value'] = request.POST.get('base_value')
@@ -75,7 +83,7 @@ def request_convert(request, amount, currency_code_1, currency_code_2, response_
     # check for errors
     try:
         amount = float(amount)
-    except ValueError:
+    except Exception:
         errors.append('Entered incorrect amount.')
 
     if currency_code_1 == currency_code_2:

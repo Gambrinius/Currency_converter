@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'converter',
     'djcelery',
+    'debug_toolbar',  # debugger
 ]
 
 MIDDLEWARE_CLASSES = [
