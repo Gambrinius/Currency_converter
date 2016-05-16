@@ -27,7 +27,7 @@ def convert(request):
     errors = []
     context = dict()
     context['currencies'] = FullName.objects.all().order_by('symbols')
-    context['update_time'] = LastUpdateTable.objects.get(table_name=Currency._meta.db_table).datatime
+    # context['update_time'] = LastUpdateTable.objects.get(table_name=Currency._meta.db_table).datatime
 
     if request.method == 'POST':
         context['base'] = request.POST.get('base')
@@ -195,9 +195,9 @@ def update(request):
                 fullname = FullName(symbols=key, name=value)
                 fullname.save()
 
-        last_currency_update = LastUpdateTable.objects.get(table_name=Currency._meta.db_table)
-        last_currency_update.datatime = datetime.datetime.now()  # change date and time of currency update
-        last_currency_update.save()
+        # last_currency_update = LastUpdateTable.objects.get(table_name=Currency._meta.db_table)
+        # last_currency_update.datatime = datetime.datetime.now()  # change date and time of currency update
+        # last_currency_update.save()
         # update_time = dict_rates['timestamp']
         # context[]
         context['result_value'] = "Update currencies is successful"
