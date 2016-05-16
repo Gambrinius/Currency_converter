@@ -80,12 +80,8 @@ WSGI_APPLICATION = 'currency_converter.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'currencydb',
-        'USER': 'gambrinius',
-        'PASSWORD': 'Abc85906231014qweR',
-        'HOST': 'localhost',
-        'PORT': '',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
@@ -119,9 +115,9 @@ CACHES = {
 # CELERY STUFF
 
 # адрес redis сервера
-BROKER_URL = 'redis://converter.pythonanywhere.com/:6379/0'
+BROKER_URL = 'redis://localhost:6379/0'
 # храним результаты выполнения задач так же в redis
-CELERY_RESULT_BACKEND = 'redis://converter.pythonanywhere.com/:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 # в течение какого срока храним результаты, после чего они удаляются
 CELERY_TASK_RESULT_EXPIRES = 7*86400  # 7 days
 # для мониторинга наших воркеров
