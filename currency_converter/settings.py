@@ -80,20 +80,14 @@ WSGI_APPLICATION = 'currency_converter.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'currencydb',
+        'USER': 'gambrinius',
+        'PASSWORD': 'Abc85906231014qweR',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
-"""
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'converter$db',
-        'USER': 'gambrinius',
-        'PASSWORD': 'gambrinius',
-        'HOST': 'converter.mysql.pythonanywhere-services.com',
-    }
-
-}"""
 
 
 # Password validation
@@ -125,9 +119,9 @@ CACHES = {
 # CELERY STUFF
 
 # адрес redis сервера
-BROKER_URL = 'redis://localhost:6379/0'
+BROKER_URL = 'redis://converter.pythonanywhere.com/:6379/0'
 # храним результаты выполнения задач так же в redis
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://converter.pythonanywhere.com/:6379/0'
 # в течение какого срока храним результаты, после чего они удаляются
 CELERY_TASK_RESULT_EXPIRES = 7*86400  # 7 days
 # для мониторинга наших воркеров
@@ -156,9 +150,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
 # TEMPLATE_DIRS = (os.path.join(BASE_DIR,  'templates'),)
 
-# STATICFILES_DIRS = (os.path.join(BASE_DIR,  'static'),
-#                    )
+STATICFILES_DIRS = (os.path.join(BASE_DIR,  'static'),
+                    )
