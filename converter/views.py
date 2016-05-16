@@ -3,6 +3,9 @@ from django.http import HttpResponse, JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from converter.models import Currency, FullName, LastUpdateTable
 from django.core.cache import cache
+
+import datetime
+import requests
 # from datetime import datetime
 
 # Create your views here.
@@ -48,25 +51,25 @@ def convert(request):
 
             if full_key in cache:
                 if context['base'] == "USD":  # rate based on USD
-                    rate_value = cache.get(full_key)
+                    rate_value = cache.get(full_key)    # get(key)
                     context['result_value'] = round(base_value * rate_value, 4)
 
                 else:   # cross rate
-                    cross_rate = cache.get(full_key)
+                    cross_rate = cache.get(full_key)    # get(key)
                     context['cross_rate'] = cross_rate
                     context['result_value'] = round(base_value * cross_rate, 4)
             else:
                 if context['base'] == "USD":  # rate based on USD
                     rate_value = Currency.objects.get(base=context['base'], rate=context['rate']).value
                     context['result_value'] = round(base_value * rate_value, 4)
-                    cache.set(full_key, rate_value, 1800)
+                    cache.set(full_key, rate_value, 1800)   # set(key, value, timeout)
                 else:   # cross rate
                     base_rate = Currency.objects.get(base="USD", rate=context['base']).value
                     second_rate = Currency.objects.get(base="USD", rate=context['rate']).value
                     cross_rate = float(second_rate / base_rate)
                     context['cross_rate'] = cross_rate
                     context['result_value'] = round(base_value * cross_rate, 4)
-                    cache.set(full_key, cross_rate, 1800)
+                    cache.set(full_key, cross_rate, 1800)   # set(key, value, timeout)
 
         return render(request, 'main.html', context)
 
@@ -105,10 +108,10 @@ def request_convert(request, amount, currency_code_1, currency_code_2, response_
 
             if full_key in cache:
                 if currency_code_1 == "USD":
-                    rate_value = cache.get(full_key)
+                    rate_value = cache.get(full_key)    # get(key)
                     converted_amount = round(amount * rate_value, 4)
                 else:
-                    cross_rate = cache.get(full_key)
+                    cross_rate = cache.get(full_key)    # get(key)
                     converted_amount = round(amount * cross_rate, 4)
             else:
                 # convert amount
@@ -116,13 +119,13 @@ def request_convert(request, amount, currency_code_1, currency_code_2, response_
 
                 if currency_code_1 == "USD":  # rate based on USD
                     converted_amount = round(amount * rate_value, 4)
-                    cache.set(full_key, rate_value, 1800)
+                    cache.set(full_key, rate_value, 1800)   # set(key, value, timeout)
 
                 else:   # cross rate
                     base_value = FullName.objects.get(base="USD", rate=currency_code_1).value
                     cross_rate = float(rate_value / base_value)
                     converted_amount = round(amount * cross_rate, 4)
-                    cache.set(full_key, cross_rate, 1800)
+                    cache.set(full_key, cross_rate, 1800)    # set(key, value, timeout)
 
         if response_format == "text":  # response in text format
             if errors:
@@ -154,3 +157,48 @@ def request_convert(request, amount, currency_code_1, currency_code_2, response_
         else:  # report an error request format
             context['fail_format'] = 'You entered unsupported or incorrect response format. Please, try again.'
             return render(request, 'response.html', context)
+
+
+def update(request):
+    context = dict()
+    errors = []
+
+    if request.method == "GET":
+        app_id = '12f3d77a607040939f8ff9c25207490c'
+        rates = requests.get('https://openexchangerates.org/api/latest.json?app_id=%s' % app_id)
+        currencies = requests.get('https://openexchangerates.org/api/currencies.json?app_id=%s' % app_id)
+
+        dict_rates = rates.json()
+        dict_currencies = currencies.json()
+        rates = dict_rates['rates'].items()
+
+        for key, value in rates:
+            try:
+                currency = Currency.objects.get(rate=key)
+            except Currency.DoesNotExist:
+                currency = None
+
+            if currency:
+                currency.value = float(value)
+                currency.save()
+            else:
+                currency = Currency(base=dict_rates["base"], rate=key, value=float(value))
+                currency.save()
+
+        for key, value in dict_currencies.items():
+            try:
+                fullname = FullName.objects.get(symbols=key)
+            except FullName.DoesNotExist:
+                fullname = None
+
+            if fullname is None:
+                fullname = FullName(symbols=key, name=value)
+                fullname.save()
+
+        last_currency_update = LastUpdateTable.objects.get(table_name=Currency._meta.db_table)
+        last_currency_update.datatime = datetime.datetime.now()  # change date and time of currency update
+        last_currency_update.save()
+        # update_time = dict_rates['timestamp']
+        # context[]
+        context['result_value'] = "Update currencies is successful"
+        return render(request, 'response.html', context)
