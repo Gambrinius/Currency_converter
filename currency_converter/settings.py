@@ -83,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'converter$db',
         'USER': 'gambrinius',
-        'PASSWORD': 'YES',
+        'PASSWORD': 'gambrinius',
         'HOST': 'converter.mysql.pythonanywhere-services.com',
     }
 }
