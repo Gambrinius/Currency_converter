@@ -80,12 +80,11 @@ WSGI_APPLICATION = 'currency_converter.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'currencydb',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'converter$db',
         'USER': 'gambrinius',
         'PASSWORD': 'Abc85906231014qweR',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'HOST': 'converter.mysql.pythonanywhere-services.com',
     }
 }
 
